@@ -2,24 +2,51 @@
 
 This project implements a scalable and secure web hosting infrastructure using Docker containers and Vagrant for orchestration. It's designed as part of the "Développeur Full Stack" curriculum, module #AD10C.
 
+## Current Progress
+
+### Completed
+- Set up Vagrant configuration for multiple Docker containers
+- Created custom Debian SSH Docker image
+- Implemented two separate Docker networks: public and private
+- Successfully created and started all required containers:
+    - Firewall (connected to both networks)
+    - Load Balancer
+    - Web Servers (Web1, Web2)
+    - Database Servers (DB1, DB2)
+    - Logs Server
+    - Monitoring Server
+    - Bastion (Jump Box)
+- Implemented SSH key-based authentication between containers
+- Created scripts for:
+    - Starting SSH services
+    - Updating /etc/hosts files
+    - Setting up SSH keys
+    - Configuring the firewall
+
+### Current Challenges
+- Firewall configuration: iptables rules are not being applied correctly
+- Connection to private network containers (monitoring, logs, db1, db2) from the bastion is not yet successful
+
+## Next Steps
+- Resolve iptables configuration issues on the firewall container
+- Establish successful connections to private network containers
+- Set up HAProxy on the load balancer
+- Configure web servers (Apache/Nginx)
+- Set up MariaDB replication between DB1 and DB2
+- Implement Graylog for logging
+- Set up Shinken for monitoring
+- Deploy a sample WordPress application
+
 ## Project Structure
 
 - `Vagrantfile`: Defines the entire infrastructure and container configurations.
-- `Dockerfile`: Specifies the custom Debian image with SSH pre-configured.
+- `Dockerfile`: Specifies the custom Debian image with SSH and iptables pre-configured.
 - `scripts/`:
-  - `start_ssh.sh`: Initializes SSH services in all containers.
-  - `connect_ssh.sh`: Tests SSH connectivity between all containers.
-  - `run_scripts.sh`: Executes the above scripts after Vagrant up.
-
-## Infrastructure Components
-
-- Gateway
-- Load Balancer
-- Web Servers (2)
-- Database Servers (2)
-- Logging Server
-- Monitoring Server
-- Bastion Host
+    - `start_ssh.sh`: Initializes SSH services in all containers.
+    - `update_hosts.sh`: Updates /etc/hosts files in all containers.
+    - `setup_ssh_keys.sh`: Sets up SSH key-based authentication between containers.
+    - `configure_firewall.sh`: Configures iptables rules on the firewall container.
+    - `run_scripts.sh`: Orchestrates the execution of all scripts.
 
 ## Getting Started
 
@@ -39,20 +66,6 @@ This project implements a scalable and secure web hosting infrastructure using D
    ```
 5. Access the bastion host:
    ```
-   ssh -i ~/.ssh/id_rsa root@localhost -p 2231
+   ssh -i ~/.ssh/id_rsa root@localhost -p 2208
    ```
 
-## Current Status
-
-- All containers are successfully created and running.
-- SSH services are properly configured and starting on all containers.
-- Full SSH connectivity is established between all containers, including the bastion host.
-
-## Next Steps
-
-- Configure HAProxy on the load balancer container.
-- Set up web servers (e.g., Apache or Nginx) on web1 and web2.
-- Implement database replication between db1 and db2.
-- Configure logging and monitoring services.
-- Implement network security measures and firewall rules.
-- Deploy the target application (e.g., WordPress).

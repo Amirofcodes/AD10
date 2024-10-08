@@ -6,27 +6,29 @@ Vagrant.configure("2") do |config|
     d.image = "custom-debian-ssh"
     d.has_ssh = false
     d.remains_running = true
-    d.cmd = ["tail", "-f", "/dev/null"]
   end
 
+  # Define the machines
   machines = {
-    "gateway" => 2223,
-    "loadbalancer" => 2224,
-    "web1" => 2225,
-    "web2" => 2226,
-    "db1" => 2227,
-    "db2" => 2228,
-    "logging" => 2229,
-    "monitoring" => 2230,
-    "bastion" => 2231
+    "firewall" => { networks: ["public", "private"] },
+    "loadbalancer" => { networks: ["public"] },
+    "web1" => { networks: ["public"] },
+    "web2" => { networks: ["public"] },
+    "db1" => { networks: ["private"] },
+    "db2" => { networks: ["private"] },
+    "logs" => { networks: ["private"] },
+    "monitoring" => { networks: ["private"] },
+    "bastion" => { networks: ["public"] }
   }
 
-  machines.each do |machine, ssh_port|
-    config.vm.define machine do |node|
-      node.vm.provider "docker" do |d|
-        d.name = "ad10_#{machine}"
-        d.ports = ["127.0.0.1:#{ssh_port}:22"]
+  machines.each do |name, settings|
+    config.vm.define name do |machine|
+      machine.vm.hostname = name
+      machine.vm.provider "docker" do |d|
+        d.name = "ad10_#{name}"
+        d.create_args = settings[:networks].map { |net| "--network=ad10_#{net}_network" }
       end
+      machine.vm.network "forwarded_port", guest: 22, host: 2200 + machines.keys.index(name)
     end
   end
 

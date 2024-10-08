@@ -1,0 +1,56 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.provider "docker" do |d|
+    d.image = "custom-debian-ssh"
+    d.has_ssh = true
+    d.remains_running = true
+    d.cmd = ["tail", "-f", "/dev/null"]
+  end
+
+  config.ssh.username = "root"
+  config.ssh.private_key_path = "~/.ssh/id_rsa"
+  config.ssh.insert_key = false
+
+  # Increase the boot timeout and SSH timeout
+  config.vm.boot_timeout = 600
+  config.ssh.connect_timeout = 60
+
+  machines = {
+    "gateway" => 2223,
+    "loadbalancer" => 2224,
+    "web1" => 2225,
+    "web2" => 2226,
+    "db1" => 2227,
+    "db2" => 2228,
+    "logging" => 2229,
+    "monitoring" => 2230,
+    "bastion" => 2231
+  }
+
+  machines.each do |machine, ssh_port|
+    config.vm.define machine do |node|
+      node.vm.provider "docker" do |d|
+        d.name = "ad10_#{machine}"
+        d.ports = ["127.0.0.1:#{ssh_port}:22"]
+      end
+
+      # Add a shell provisioner to ensure SSH is properly configured and started
+      node.vm.provision "shell", inline: <<-SHELL
+        sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+        sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+        sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+        # Ensure SSH starts on boot
+        systemctl enable ssh
+
+        # Start SSH service
+        service ssh start
+
+        # Check SSH status
+        service ssh status
+      SHELL
+    end
+  end
+end

@@ -19,5 +19,8 @@ $SCRIPT_DIR/setup_ssh_keys.sh
 echo 'Running configure_firewall.sh...'
 $SCRIPT_DIR/configure_firewall.sh
 
+echo 'Running setup_routing.sh...'
+$SCRIPT_DIR/setup_routing.sh
+
 echo 'Running connect_ssh.sh...'
 $SCRIPT_DIR/connect_ssh.sh
